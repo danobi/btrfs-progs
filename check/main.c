@@ -10243,6 +10243,10 @@ static int cmd_check(const struct cmd_struct *cmd, int argc, char **argv)
 		goto close_out;
 	}
 
+        /* Fallback to --init-extent-tree if extent tree is unreadable */
+        if (!extent_buffer_uptodate(info->extent_root->node) && repair)
+		init_extent_tree = true;
+
 	if (init_extent_tree || init_csum_tree) {
 		struct btrfs_trans_handle *trans;
 
