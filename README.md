@@ -82,6 +82,10 @@ the patches meet some criteria (often lacking in github contributions):
     substitute in order to allow contributions without much bothering with
     formalities
 
+btrfs-progs is configured with an `.editorconfig`. Please consider installing an
+[EditorConfig](https://editorconfig.org/) plugin for your text editor to help
+maintain source file format consistency.
+
 Documentation updates
 ---------------------
 
