@@ -1197,6 +1197,41 @@ out:
 	return ret;
 }
 
+static char *get_subvol_name(struct btrfs_root *tree_root, u64 subvol_id)
+{
+	struct btrfs_root_ref *ref;
+	struct btrfs_path path;
+	struct btrfs_key key;
+	int namelen;
+	int ret;
+	char *name = NULL;
+
+	key.objectid = BTRFS_FS_TREE_OBJECTID;
+	key.type = BTRFS_ROOT_REF_KEY;
+	key.offset = subvol_id;
+
+	btrfs_init_path(&path);
+	ret = btrfs_search_slot(NULL, tree_root, &key, &path, 0, 0);
+	if (ret != 0)
+		goto out;
+
+	ref = btrfs_item_ptr(path.nodes[0], path.slots[0], struct btrfs_root_ref);
+
+	namelen = btrfs_root_ref_name_len(path.nodes[0], ref);
+	name = malloc(sizeof(char) * namelen + 1);
+	if (!name) {
+		name = ERR_PTR(-ENOMEM);
+		goto out;
+	}
+
+	read_extent_buffer(path.nodes[0], name, (unsigned long)(ref + 1), namelen);
+	name[namelen] = 0;
+
+out:
+	btrfs_release_path(&path);
+	return name;
+}
+
 static int do_list_roots(struct btrfs_root *root)
 {
 	struct btrfs_key key;
@@ -1206,6 +1241,7 @@ static int do_list_roots(struct btrfs_root *root)
 	struct extent_buffer *leaf;
 	struct btrfs_root_item ri;
 	unsigned long offset;
+	char *name;
 	int slot;
 	int ret;
 
@@ -1244,8 +1280,16 @@ static int do_list_roots(struct btrfs_root *root)
 		read_extent_buffer(leaf, &ri, offset, sizeof(ri));
 		printf(" tree ");
 		btrfs_print_key(&disk_key);
-		printf(" %Lu level %d\n", btrfs_root_bytenr(&ri),
+		printf(" %Lu level %d", btrfs_root_bytenr(&ri),
 		       btrfs_root_level(&ri));
+
+		name = get_subvol_name(root, found_key.objectid);
+		if (name) {
+			printf(" %s", name);
+			free(name);
+		}
+
+		printf("\n");
 		path.slots[0]++;
 	}
 	btrfs_release_path(&path);
