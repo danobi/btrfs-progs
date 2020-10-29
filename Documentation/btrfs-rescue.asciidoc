@@ -93,6 +93,11 @@ the log and the filesystem may be mounted normally again. The keywords to look
 for are 'open_ctree' which says that it's during mount and function names
 that contain 'replay', 'recover' or 'log_tree'.
 
+*create-control-device* ::
+Creates /dev/btrfs-control control device
++
+This command is for convenience when *mknod* is not installed on a system.
+
 EXIT STATUS
 -----------
 *btrfs rescue* returns a zero exit status if it succeeds. Non zero is
